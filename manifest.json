@@ -7,12 +7,12 @@
     "theme_color": "#0f0f13",
     "icons": [
         {
-            "src": "eden.png",
+            "src": "eden1.png",
             "sizes": "192x192",
             "type": "image/png"
         },
         {
-            "src": "eden.png",
+            "src": "eden1.png",
             "sizes": "512x512",
             "type": "image/png"
         }
