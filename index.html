@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Eden</title>
+
+    <link rel="icon" type="image/png" href="eden.png">
+    <link rel="shortcut icon" type="image/png" href="eden.png">
+    <link rel="apple-touch-icon" href="eden.png">
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Quicksand:wght@300;400;600;700&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+
+    <div id="settings-modal" class="welcome-overlay">
+        <div class="welcome-box glass-card">
+            <div class="modal-header-row">
+                <h2>Settings</h2>
+                <button class="icon-btn" onclick="closeSettings(false)"><i class="ri-close-line"></i></button>
+            </div>
+
+            <label class="setting-label">Display Name</label>
+            <input type="text" id="set-name" class="glass-input center-input" placeholder="Your Name">
+
+            <label class="setting-label">Theme Gradient</label>
+            <div class="color-picker-row">
+                <div class="cp-wrapper">
+                    <input type="color" id="set-c1" oninput="previewTheme()">
+                    <span>Top</span>
+                </div>
+                <div class="cp-wrapper">
+                    <input type="color" id="set-c2" oninput="previewTheme()">
+                    <span>Bottom</span>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="glass-btn secondary-btn" onclick="closeSettings(false)">Cancel</button>
+                <button class="glass-btn primary-btn" onclick="saveSettings()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <header class="glass-header">
+        <span class="brand-name">Eden.</span>
+        <div class="header-controls">
+            <button class="icon-btn" onclick="openSettings()">
+                <i class="ri-settings-3-line"></i>
+            </button>
+            <div class="divider-v"></div>
+            <button class="icon-btn nav-arrow" onclick="scrollFeed(-1)"><i class="ri-arrow-up-s-line"></i></button>
+            <button class="icon-btn nav-arrow" onclick="scrollFeed(1)"><i class="ri-arrow-down-s-line"></i></button>
+            <button class="icon-btn" onclick="document.getElementById('jump-date').showPicker()">
+                <i class="ri-calendar-event-line"></i>
+            </button>
+            <input type="date" id="jump-date">
+        </div>
+    </header>
+
+    <main id="journal-feed" class="snap-scroll">
+        <div id="greeting-section" class="greeting-card hidden">
+            <h1 id="greeting-text">Good Morning,</h1>
+            <p id="verse-of-day" class="italic-text">"Be still, and know that I am God."</p>
+        </div>
+
+        <div id="loader" class="loader-container">
+            <div class="spinner"></div>
+            <p>Syncing your garden...</p>
+        </div>
+
+        <div id="empty-state" class="empty-state hidden">
+            <div class="glass-card empty-card">
+                <i class="ri-plant-line"></i>
+                <h3>Let's Grow</h3>
+                <p>Tap the + button to plant your first entry.</p>
+            </div>
+        </div>
+    </main>
+
+    <button class="fab" onclick="startNewEntry()">
+        <i class="ri-add-line"></i>
+    </button>
+
+    <div id="wizard-overlay" class="wizard-overlay">
+        <div id="reference-pill" class="reference-pill hidden" onclick="toggleReference()">
+            <div class="ref-header"><i class="ri-book-open-line"></i> <span id="ref-header-text">Scripture Ref</span>
+            </div>
+            <p id="ref-text" class="ref-text"></p>
+        </div>
+
+        <div class="wizard-container">
+            <div class="wizard-header">
+                <button class="nav-icon" onclick="prevStep()" id="back-btn"><i
+                        class="ri-arrow-left-s-line"></i></button>
+                <span id="step-indicator">Step 1 of 4</span>
+                <button class="nav-icon" onclick="closeWizard()"><i class="ri-close-line"></i></button>
+            </div>
+
+            <form id="soap-form">
+                <div class="step active" id="step-1">
+                    <div class="step-title" id="step-1-title">The Seed (S)</div>
+                    <p class="step-desc">Pick a date, the verse reference, and the text.</p>
+                    <input type="date" id="entry-date" class="glass-input date-input">
+                    <input type="text" id="entry-ref" class="glass-input" placeholder="Reference (e.g. James 1:17)"
+                        oninput="updateRefHeader()" style="margin-bottom: 15px; font-weight: bold;">
+                    <textarea id="entry-s" class="glass-input area-large" placeholder="Paste scripture text here..."
+                        oninput="updateReference()"></textarea>
+                </div>
+                <div class="step" id="step-2">
+                    <div class="step-title">Observe (O)</div>
+                    <p class="step-desc">What stands out? Who is speaking?</p>
+                    <textarea id="entry-o" class="glass-input area-large" placeholder="I noticed that..."></textarea>
+                </div>
+                <div class="step" id="step-3">
+                    <div class="step-title">Apply (A)</div>
+                    <p class="step-desc">How does this truth change today?</p>
+                    <textarea id="entry-a" class="glass-input area-large" placeholder="I will..."></textarea>
+                </div>
+                <div class="step" id="step-4">
+                    <div class="step-title">Pray (P)</div>
+                    <p class="step-desc">Turn this truth into conversation.</p>
+                    <textarea id="entry-p" class="glass-input area-large" placeholder="Lord, help me to..."></textarea>
+                </div>
+            </form>
+
+            <div class="wizard-footer">
+                <button id="action-btn" class="glass-btn primary-btn" onclick="handleNext()">Next Step</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbxMXNqsf8k5u6EvR_X7Mq8gyQ_RPccV2tR_ZoU0GbV-9HVjGN2qNWll7ojWXbDJjtAoHg/exec";
+
+        const PRAISES = [
+            "Your spirit is growing! <i class='ri-seedling-fill'></i>", "Beautifully written. <i class='ri-sparkling-fill'></i>",
+            "God hears your prayer. <i class='ri-hand-heart-fill'></i>", "A seed planted in faith. <i class='ri-leaf-fill'></i>"
+        ];
+
+        // State
+        let currentStep = 1;
+        let isEditing = false;
+        const totalSteps = 4;
+
+        // Settings State
+        let userSettings = { name: "", color1: "#e0c3fc", color2: "#8ec5fc" };
+        let originalColors = { c1: "", c2: "" }; // To revert if cancelled
+
+        // DOM Elements
+        const wizard = document.getElementById('wizard-overlay');
+        const refPill = document.getElementById('reference-pill');
+        const feed = document.getElementById('journal-feed');
+        const settingsModal = document.getElementById('settings-modal');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchData(); // Gets Entries AND Settings
+            document.getElementById('entry-date').valueAsDate = new Date();
+
+            // Clear errors on input
+            document.querySelectorAll('input, textarea').forEach(input => {
+                input.addEventListener('input', () => input.classList.remove('input-error'));
+            });
+        });
+
+        // --- SETTINGS LOGIC ---
+        function applyTheme(c1, c2) {
+            document.documentElement.style.setProperty('--accent-1', c1);
+            document.documentElement.style.setProperty('--accent-2', c2);
+        }
+
+        function openSettings() {
+            // Store current colors to revert if needed
+            originalColors.c1 = userSettings.color1;
+            originalColors.c2 = userSettings.color2;
+
+            // Populate Inputs
+            document.getElementById('set-name').value = userSettings.name;
+            document.getElementById('set-c1').value = userSettings.color1;
+            document.getElementById('set-c2').value = userSettings.color2;
+
+            settingsModal.style.display = 'flex';
+            setTimeout(() => settingsModal.style.opacity = '1', 10);
+        }
+
+        function previewTheme() {
+            const c1 = document.getElementById('set-c1').value;
+            const c2 = document.getElementById('set-c2').value;
+            applyTheme(c1, c2); // Live preview
+        }
+
+        function closeSettings(save) {
+            if (!save) {
+                // Revert Theme
+                applyTheme(originalColors.c1, originalColors.c2);
+            }
+            settingsModal.style.opacity = '0';
+            setTimeout(() => settingsModal.style.display = 'none', 300);
+        }
+
+        async function saveSettings() {
+            const newName = document.getElementById('set-name').value.trim();
+            const newC1 = document.getElementById('set-c1').value;
+            const newC2 = document.getElementById('set-c2').value;
+
+            if (!newName) {
+                document.getElementById('set-name').classList.add('input-error');
+                showToast("Name cannot be empty <i class='ri-error-warning-line'></i>", "error");
+                return;
+            }
+
+            // Update Local State
+            userSettings = { name: newName, color1: newC1, color2: newC2 };
+            applyTheme(newC1, newC2); // Ensure it's applied
+            setGreeting(newName);
+
+            // Send to Cloud
+            showToast("Saving settings... <i class='ri-loader-4-line'></i>", "normal");
+            closeSettings(true);
+
+            try {
+                await fetch(API_URL, {
+                    method: 'POST', mode: 'no-cors',
+                    body: JSON.stringify({ action: "update_settings", ...userSettings })
+                });
+                showToast("Settings saved to Cloud <i class='ri-cloud-line'></i>", "success");
+            } catch (err) {
+                showToast("Saved locally (Sync Error) <i class='ri-wifi-off-line'></i>", "error");
+            }
+        }
+
+        function setGreeting(name) {
+            const hour = new Date().getHours();
+            let timeGreeting = "Good Morning";
+            if (hour >= 12 && hour < 18) timeGreeting = "Good Afternoon";
+            if (hour >= 18) timeGreeting = "Good Evening";
+
+            if (name) {
+                document.getElementById('greeting-text').innerText = `${timeGreeting}, ${name}.`;
+                document.getElementById('greeting-section').classList.remove('hidden');
+            } else {
+                // If no name found (first load ever), prompt settings
+                openSettings();
+            }
+        }
+
+        // --- FETCH DATA (Entries + Settings) ---
+        async function fetchData() {
+            try {
+                const res = await fetch(API_URL);
+                const data = await res.json();
+
+                if (data.status === 'error') throw new Error(data.error);
+
+                // 1. Apply Settings
+                if (data.settings) {
+                    userSettings = data.settings;
+                    if (userSettings.name) setGreeting(userSettings.name);
+                    else openSettings(); // First time user
+
+                    if (userSettings.color1) applyTheme(userSettings.color1, userSettings.color2);
+                }
+
+                // 2. Render Entries
+                const entries = data.entries || [];
+                renderEntries(entries.slice().reverse());
+
+            } catch (err) {
+                console.error(err);
+                showToast("Offline / Sync Error <i class='ri-cloud-off-line'></i>", "error");
+            } finally {
+                document.getElementById('loader').style.display = 'none';
+            }
+        }
+
+        // --- WIZARD & ENTRIES LOGIC (Existing) ---
+        function startNewEntry() {
+            isEditing = false; currentStep = 1;
+            document.getElementById('soap-form').reset();
+            document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+            document.getElementById('entry-date').valueAsDate = new Date();
+            document.getElementById('entry-date').disabled = false;
+            document.getElementById('step-1-title').innerText = "The Seed (S)";
+            updateRefHeader();
+            const draft = JSON.parse(localStorage.getItem('soap_draft'));
+            if (draft) populateForm(draft);
+            openWizard();
+        }
+
+        function openEdit(entryStr) {
+            const entry = JSON.parse(decodeURIComponent(entryStr));
+            isEditing = true; currentStep = 1;
+            document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+            document.getElementById('entry-date').value = entry.date;
+            document.getElementById('entry-date').disabled = true;
+            document.getElementById('entry-ref').value = entry.reference || "";
+            document.getElementById('entry-s').value = entry.scripture;
+            document.getElementById('entry-o').value = entry.observation;
+            document.getElementById('entry-a').value = entry.application;
+            document.getElementById('entry-p').value = entry.prayer;
+            document.getElementById('step-1-title').innerText = "Editing Entry";
+            openWizard();
+        }
+
+        async function deleteEntry(date) {
+            if (!confirm("Are you sure you want to delete this entry?")) return;
+            showToast("Deleting... <i class='ri-delete-bin-line'></i>", "normal");
+            try {
+                await fetch(API_URL, {
+                    method: 'POST', mode: 'no-cors',
+                    body: JSON.stringify({ action: "delete", date: date })
+                });
+                showToast("Entry pruned <i class='ri-check-line'></i>", "success");
+                fetchData(); // Re-fetch all
+            } catch (err) { showToast("Error deleting <i class='ri-error-warning-line'></i>", "error"); }
+        }
+
+        function openWizard() { wizard.classList.add('active'); updateUI(); updateRefHeader(); }
+        function closeWizard() { wizard.classList.remove('active'); if (!isEditing) saveDraft(); }
+
+        function handleNext() {
+            if (!validateStep(currentStep)) return;
+            if (currentStep < totalSteps) nextStep();
+            else submitEntry();
+        }
+
+        function validateStep(step) {
+            let isValid = true;
+            if (step === 1) {
+                if (!document.getElementById('entry-date').value) { document.getElementById('entry-date').classList.add('input-error'); isValid = false; }
+                if (!document.getElementById('entry-ref').value.trim()) { document.getElementById('entry-ref').classList.add('input-error'); isValid = false; }
+                if (!document.getElementById('entry-s').value.trim()) { document.getElementById('entry-s').classList.add('input-error'); isValid = false; }
+                if (!isValid) showToast("Please fill all fields <i class='ri-error-warning-line'></i>", "error");
+            }
+            else {
+                const map = { 2: 'entry-o', 3: 'entry-a', 4: 'entry-p' };
+                const el = document.getElementById(map[step]);
+                if (!el.value.trim()) { el.classList.add('input-error'); showToast("This field cannot be empty <i class='ri-error-warning-line'></i>", "error"); isValid = false; }
+            }
+            return isValid;
+        }
+
+        function nextStep() {
+            document.getElementById(`step-${currentStep}`).classList.remove('active'); currentStep++;
+            document.getElementById(`step-${currentStep}`).classList.add('active'); updateUI();
+        }
+        function prevStep() {
+            document.getElementById(`step-${currentStep}`).classList.remove('active'); currentStep--;
+            document.getElementById(`step-${currentStep}`).classList.add('active'); updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('step-indicator').innerText = `Step ${currentStep} of ${totalSteps}`;
+            document.getElementById('action-btn').innerText = currentStep === totalSteps ? (isEditing ? "Update Entry" : "Finish & Save") : "Next";
+            document.getElementById('back-btn').style.opacity = currentStep === 1 ? "0" : "1";
+            document.getElementById('back-btn').style.pointerEvents = currentStep === 1 ? "none" : "auto";
+            if (currentStep > 1) {
+                refPill.classList.remove('hidden');
+                document.getElementById('ref-text').innerText = document.getElementById('entry-s').value;
+            } else { refPill.classList.add('hidden'); }
+        }
+
+        function toggleReference() { refPill.classList.toggle('expanded'); }
+        function updateReference() { document.getElementById('ref-text').innerText = document.getElementById('entry-s').value; }
+        function updateRefHeader() { const val = document.getElementById('entry-ref').value; document.getElementById('ref-header-text').innerText = val ? val : "Scripture Ref"; }
+
+        async function submitEntry() {
+            const btn = document.getElementById('action-btn');
+            const originalText = btn.innerText;
+            btn.innerHTML = "Processing <i class='ri-loader-4-line'></i>"; btn.disabled = true;
+            const formData = {
+                action: isEditing ? "edit" : "create",
+                date: document.getElementById('entry-date').value,
+                reference: document.getElementById('entry-ref').value,
+                scripture: document.getElementById('entry-s').value,
+                observation: document.getElementById('entry-o').value,
+                application: document.getElementById('entry-a').value,
+                prayer: document.getElementById('entry-p').value
+            };
+            try {
+                await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(formData) });
+                showToast(isEditing ? "Entry Updated <i class='ri-check-line'></i>" : PRAISES[Math.floor(Math.random() * PRAISES.length)], "success");
+                if (!isEditing) localStorage.removeItem('soap_draft');
+                closeWizard(); fetchData();
+            } catch (err) { showToast("Connection Error <i class='ri-wifi-off-line'></i>", "error"); }
+            finally { btn.disabled = false; btn.innerText = originalText; }
+        }
+
+        function renderEntries(entries) {
+            const cards = document.querySelectorAll('.entry-card'); cards.forEach(c => c.remove());
+            if (entries.length === 0) { document.getElementById('empty-state').classList.remove('hidden'); return; }
+            document.getElementById('empty-state').classList.add('hidden');
+            entries.forEach(entry => {
+                const dateObj = new Date(entry.date);
+                const day = dateObj.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+                const weekday = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
+                const entryJson = encodeURIComponent(JSON.stringify(entry));
+                const displayRef = entry.reference ? entry.reference : "Scripture";
+                const card = document.createElement('div');
+                card.className = 'entry-card glass-card'; card.id = `date-${entry.date}`;
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div class="header-left"><div class="date-bubble">${day}</div><div class="meta-bubble">${weekday}</div></div>
+                        <div class="header-actions">
+                            <button onclick="toggleMenu(this)" class="menu-btn"><i class="ri-more-2-fill"></i></button>
+                            <div class="dropdown-menu">
+                                <button onclick="openEdit('${entryJson}')"><i class="ri-pencil-line"></i> Edit</button>
+                                <button onclick="deleteEntry('${entry.date}')" class="danger"><i class="ri-delete-bin-line"></i> Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="soap-content">
+                        <div class="section"><span class="label">Scripture</span>
+                        <div class="scripture-block"><h4 class="verse-ref-display">${displayRef}</h4><p class="serif-text">${formatText(entry.scripture)}</p></div></div>
+                        <div class="section"><span class="label">Observation</span><p>${formatText(entry.observation)}</p></div>
+                        <div class="section"><span class="label">Application</span><p>${formatText(entry.application)}</p></div>
+                        <div class="section highlight-section"><span class="label">Prayer</span><p class="italic-text">${formatText(entry.prayer)}</p></div>
+                    </div>`;
+                feed.appendChild(card);
+            });
+        }
+
+        function toggleMenu(btn) {
+            document.querySelectorAll('.dropdown-menu.show').forEach(m => { if (m !== btn.nextElementSibling) m.classList.remove('show'); });
+            btn.nextElementSibling.classList.toggle('show');
+        }
+        document.addEventListener('click', (e) => {
+            if (!e.target.matches('.menu-btn') && !e.target.closest('.menu-btn')) { document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show')); }
+        });
+        function scrollFeed(dir) { feed.scrollBy({ top: window.innerHeight * dir, behavior: 'smooth' }); }
+        document.getElementById('jump-date').addEventListener('change', (e) => {
+            const target = document.getElementById(`date-${e.target.value}`);
+            if (target) { target.scrollIntoView({ behavior: 'smooth', block: 'start' }); showToast("Traveled to date <i class='ri-time-line'></i>", "success"); }
+            else { showToast("No entry found <i class='ri-file-search-line'></i>", "error"); }
+        });
+        function saveDraft() {
+            const draft = { ref: document.getElementById('entry-ref').value, s: document.getElementById('entry-s').value, o: document.getElementById('entry-o').value, a: document.getElementById('entry-a').value, p: document.getElementById('entry-p').value };
+            localStorage.setItem('soap_draft', JSON.stringify(draft));
+        }
+        function populateForm(data) {
+            document.getElementById('entry-ref').value = data.ref || ""; document.getElementById('entry-s').value = data.s || "";
+            document.getElementById('entry-o').value = data.o || ""; document.getElementById('entry-a').value = data.a || ""; document.getElementById('entry-p').value = data.p || "";
+        }
+        function formatText(t) { return t ? t.replace(/\n/g, '<br>') : ''; }
+        function showToast(m, t) {
+            const toast = document.createElement('div'); toast.className = `toast toast-${t}`; toast.innerHTML = m;
+            document.getElementById('toast-container').appendChild(toast); void toast.offsetWidth; toast.classList.add('show');
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+    </script>
+</body>
+
+</html>
